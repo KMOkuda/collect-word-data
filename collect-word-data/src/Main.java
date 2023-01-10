@@ -2,58 +2,101 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+class Word{
+	String word;
+	String category;
+
+
+	public Word(String word, String category) {
+		this.word = word;
+		this.category = category;
+	}
+
+	public String getWord() {
+		return word;
+	}
+	public void setWord(String word) {
+		this.word = word;
+	}
+
+	public String getCategory() {
+		return category;
+	}
+	public void setCategory(String category) {
+		this.category = category;
+	};
+
+
+}
 
 public class Main {
 	public static void main(String[] args) throws Exception {
 		char firstAlphabet = 'a';
 		String startPattern = "<dt>";
 		String endPattern = "　";
-		HashMap<String, ArrayList<String>> dataMap = new HashMap<String, ArrayList<String>>();
+
+		//アルファベットの頭文字とそれに紐づく単語を格納する
+		HashMap<String, ArrayList<Word>> dataMap = new LinkedHashMap<String, ArrayList<Word>>();
+
+		ArrayList<String> initials = new ArrayList<String>();
 
 		for (int i = (int) firstAlphabet; i <= (int) firstAlphabet + 25; i++) {
-			int count = 0;
-			ArrayList<String> currentList = new ArrayList<String>();
-			String urlString = "https://www.fe-siken.com/keyword/_" + (char) i + ".html";
+			initials.add("_" + Character.toString((char)i));
+		}
+
+		initials.addAll(Arrays.asList(
+		"xa", "xi", "xu", "xe", "xo",
+		"ka", "ki", "ku", "ke", "ko",
+		"sa", "si", "su", "se", "so",
+		"ta", "ti", "tu", "te", "to",
+		"na", "ni", "nu", "ne", "no",
+		"ha", "hi", "hu", "he", "ho",
+		"ma", "mi", "mu", "me", "mo",
+		"ya", "yu", "yo", "wa"
+		));
+
+		for (String al: initials) {
+
+			//同じ頭文字の単語を格納する
+			ArrayList<Word> currentList = new ArrayList<Word>();
+
+			String urlString = "https://www.fe-siken.com/keyword/" + al+ ".html";
 			URL url = new URL(urlString);
-			System.out.println("URL:" + url);
+
 			BufferedReader read = new BufferedReader(
 					new InputStreamReader(url.openStream(), "Shift_JIS"));
 
+			//読み込みが終了するとendJudgerが-1になる
 			int endJudger = 0;
-			char j;
+
+			char singleWord;
 			StringBuffer sb = new StringBuffer();
 			StringBuffer collectingWord = new StringBuffer();
 			boolean isCollecting = false;
 
-
 			while ((endJudger = read.read()) != -1) {
-				j = (char)endJudger;
-				//				System.out.print(j);
-				sb.append(j);
+				singleWord = (char)endJudger;
+				sb.append(singleWord);
+
 				if (isCollecting) {
 					if (sb.indexOf(endPattern) != -1) {
-						count++;
-//						System.out.println("equals.");
-						System.out.println(collectingWord);
-						currentList.add(collectingWord.toString());
+
+						currentList.add(new Word(collectingWord.toString(), "カテゴリー"));
 						isCollecting = false;
 						sb = new StringBuffer();
 						collectingWord = new StringBuffer();
 
-						System.out.println("------デバッグ------");
-						for (String word : currentList) {
-//							System.out.println("word:" + word);
-						}
 					} else {
-						collectingWord.append(j);
-						//						System.out.print(j);
+						collectingWord.append(singleWord);
 					}
 
 				} else {
 					if (sb.indexOf(startPattern) != -1) {
-//						System.out.println("found.");
 						isCollecting = true;
 						collectingWord = new StringBuffer();
 						sb = new StringBuffer();
@@ -61,19 +104,23 @@ public class Main {
 				}
 			}
 
-			System.out.println("count:" + count);
-			dataMap.put(Character.toString((char) i), currentList);
+			dataMap.put(al, currentList);
 			read.close();
 
 		}
 
 		System.out.println("ループ終了");
 
-		for (Map.Entry<String, ArrayList<String>> entry : dataMap.entrySet()) {
-			ArrayList<String> tmpList = entry.getValue();
-			for (String word : tmpList) {
-				System.out.println("word:" + word);
+		for (Map.Entry<String, ArrayList<Word>> entry : dataMap.entrySet()) {
+			ArrayList<Word> tmpList = entry.getValue();
+			System.out.println("-----------------------" + entry.getKey() + "------------------------");
+			for (Word word : tmpList) {
+				System.out.println("word:" + word.getWord());
 			}
+		}
+
+		for (String al: initials) {
+			System.out.println(al);
 		}
 	}
 }
