@@ -1,16 +1,18 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class Word{
+class Word {
 	String word;
 	String category;
-
 
 	public Word(String word, String category) {
 		this.word = word;
@@ -20,6 +22,7 @@ class Word{
 	public String getWord() {
 		return word;
 	}
+
 	public void setWord(String word) {
 		this.word = word;
 	}
@@ -27,10 +30,10 @@ class Word{
 	public String getCategory() {
 		return category;
 	}
+
 	public void setCategory(String category) {
 		this.category = category;
 	};
-
 
 }
 
@@ -46,9 +49,10 @@ public class Main {
 		ArrayList<String> initials = new ArrayList<String>();
 
 		for (int i = (int) firstAlphabet; i <= (int) firstAlphabet + 25; i++) {
-			initials.add("_" + Character.toString((char)i));
+			initials.add("_" + Character.toString((char) i));
 		}
 
+		/**
 		initials.addAll(Arrays.asList(
 		"xa", "xi", "xu", "xe", "xo",
 		"ka", "ki", "ku", "ke", "ko",
@@ -59,13 +63,14 @@ public class Main {
 		"ma", "mi", "mu", "me", "mo",
 		"ya", "yu", "yo", "wa"
 		));
+		**/
 
-		for (String al: initials) {
+		for (String al : initials) {
 
 			//同じ頭文字の単語を格納する
 			ArrayList<Word> currentList = new ArrayList<Word>();
 
-			String urlString = "https://www.fe-siken.com/keyword/" + al+ ".html";
+			String urlString = "https://www.fe-siken.com/keyword/" + al + ".html";
 			URL url = new URL(urlString);
 
 			BufferedReader read = new BufferedReader(
@@ -80,7 +85,7 @@ public class Main {
 			boolean isCollecting = false;
 
 			while ((endJudger = read.read()) != -1) {
-				singleWord = (char)endJudger;
+				singleWord = (char) endJudger;
 				sb.append(singleWord);
 
 				if (isCollecting) {
@@ -111,15 +116,32 @@ public class Main {
 
 		System.out.println("ループ終了");
 
-		for (Map.Entry<String, ArrayList<Word>> entry : dataMap.entrySet()) {
-			ArrayList<Word> tmpList = entry.getValue();
-			System.out.println("-----------------------" + entry.getKey() + "------------------------");
-			for (Word word : tmpList) {
-				System.out.println("word:" + word.getWord());
+		FileOutputStream fo = null;
+		OutputStreamWriter osw = null;
+		BufferedWriter bw = null;
+
+		try {
+			fo = new FileOutputStream("output.csv");
+			osw = new OutputStreamWriter(fo, "SHIFT_JIS");
+			bw = new BufferedWriter(osw);
+
+			for (Map.Entry<String, ArrayList<Word>> entry : dataMap.entrySet()) {
+				ArrayList<Word> tmpList = entry.getValue();
+				System.out.println("-----------------------" + entry.getKey() + "------------------------");
+				for (Word word : tmpList) {
+					System.out.println("word:" + word.getWord());
+					bw.write(word.getWord());
+					bw.write("\n");
+				}
 			}
+
+			bw.close();
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
-		for (String al: initials) {
+		for (String al : initials) {
 			System.out.println(al);
 		}
 	}
