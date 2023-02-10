@@ -1,126 +1,92 @@
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
 
-class Word{
-	String word;
-	String category;
+class Word implements Comparable<Word>{
+	String KW;
+	int category;
+	int level;
 
-
-	public Word(String word, String category) {
-		this.word = word;
+	public Word(String kW, int category, int level) {
+		super();
+		KW = kW;
 		this.category = category;
+		this.level = level;
 	}
 
-	public String getWord() {
-		return word;
+	public String getKW() {
+		return KW;
 	}
-	public void setWord(String word) {
-		this.word = word;
+	public void setKW(String kW) {
+		KW = kW;
 	}
-
-	public String getCategory() {
+	public int getCategory() {
 		return category;
 	}
-	public void setCategory(String category) {
+	public void setCategory(int category) {
 		this.category = category;
-	};
+	}
+	public int getLevel() {
+		return level;
+	}
+	public void setLevel(int level) {
+		this.level = level;
+	}
 
-
+	@Override
+	public int compareTo(Word word) {
+		if(this.category < word.category) {
+			return -1;
+		}else if(this.category > word.category) {
+			return 1;
+		}else if(this.level < word.level) {
+			return -1;
+		}else if (this.level > word.level) {
+			return 1;
+		}else {
+			return 0;
+		}
+	}
 }
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		char firstAlphabet = 'a';
-		String startPattern = "<dt>";
-		String endPattern = "　";
+		Scanner sc = new Scanner(System.in);
 
-		//アルファベットの頭文字とそれに紐づく単語を格納する
-		HashMap<String, ArrayList<Word>> dataMap = new LinkedHashMap<String, ArrayList<Word>>();
+		List<Word> wordList = new ArrayList<Word>();
+		try {
+			File file = new File("word-list-test.txt");
 
-		ArrayList<String> initials = new ArrayList<String>();
+			if (file.exists()) {
+				FileReader fr = new FileReader(file);
+				BufferedReader br = new BufferedReader(fr);
+				String content;
+				while ((content = br.readLine()) != null) {
+					System.out.println(content);
+					System.out.println("カテゴリーを選択");
+					System.out.println("1:hardware 2:software 3:DB 4:network 5:security 6:design 7:management 8:strategy 9:?");
+					int categoryId = sc.nextInt();
+					System.out.println("レベルを選択");
+					System.out.println("1, 2, 3, 4(?)");
+					int level = sc.nextInt();
 
-		for (int i = (int) firstAlphabet; i <= (int) firstAlphabet + 25; i++) {
-			initials.add("_" + Character.toString((char)i));
-		}
-
-		initials.addAll(Arrays.asList(
-		"xa", "xi", "xu", "xe", "xo",
-		"ka", "ki", "ku", "ke", "ko",
-		"sa", "si", "su", "se", "so",
-		"ta", "ti", "tu", "te", "to",
-		"na", "ni", "nu", "ne", "no",
-		"ha", "hi", "hu", "he", "ho",
-		"ma", "mi", "mu", "me", "mo",
-		"ya", "yu", "yo", "wa"
-		));
-
-		for (String al: initials) {
-
-			//同じ頭文字の単語を格納する
-			ArrayList<Word> currentList = new ArrayList<Word>();
-
-			String urlString = "https://www.fe-siken.com/keyword/" + al+ ".html";
-			URL url = new URL(urlString);
-
-			BufferedReader read = new BufferedReader(
-					new InputStreamReader(url.openStream(), "Shift_JIS"));
-
-			//読み込みが終了するとendJudgerが-1になる
-			int endJudger = 0;
-
-			char singleWord;
-			StringBuffer sb = new StringBuffer();
-			StringBuffer collectingWord = new StringBuffer();
-			boolean isCollecting = false;
-
-			while ((endJudger = read.read()) != -1) {
-				singleWord = (char)endJudger;
-				sb.append(singleWord);
-
-				if (isCollecting) {
-					if (sb.indexOf(endPattern) != -1) {
-
-						currentList.add(new Word(collectingWord.toString(), "カテゴリー"));
-						isCollecting = false;
-						sb = new StringBuffer();
-						collectingWord = new StringBuffer();
-
-					} else {
-						collectingWord.append(singleWord);
-					}
-
-				} else {
-					if (sb.indexOf(startPattern) != -1) {
-						isCollecting = true;
-						collectingWord = new StringBuffer();
-						sb = new StringBuffer();
-					}
+					wordList.add(new Word(content, categoryId, level));
 				}
+				br.close();
 			}
-
-			dataMap.put(al, currentList);
-			read.close();
-
+		} catch (IOException ex) {
+			ex.printStackTrace();
 		}
 
-		System.out.println("ループ終了");
+		Collections.sort(wordList);
 
-		for (Map.Entry<String, ArrayList<Word>> entry : dataMap.entrySet()) {
-			ArrayList<Word> tmpList = entry.getValue();
-			System.out.println("-----------------------" + entry.getKey() + "------------------------");
-			for (Word word : tmpList) {
-				System.out.println("word:" + word.getWord());
-			}
-		}
-
-		for (String al: initials) {
-			System.out.println(al);
+		for(Word word : wordList) {
+			System.out.println(word.getKW() + word.getCategory() + word.getLevel());
 		}
 	}
 }
