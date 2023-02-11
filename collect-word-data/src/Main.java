@@ -1,7 +1,11 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +67,7 @@ public class Main {
 			File file = new File("word-list-test.txt");
 
 			if (file.exists()) {
+				System.out.println("aaaaa");
 				FileReader fr = new FileReader(file);
 				BufferedReader br = new BufferedReader(fr);
 				String content;
@@ -87,6 +92,30 @@ public class Main {
 
 		for(Word word : wordList) {
 			System.out.println(word.getKW() + word.getCategory() + word.getLevel());
+		}
+	
+		
+		try {
+			File file = new File("categorization.csv");
+			OutputStreamWriter osw  = new OutputStreamWriter(new FileOutputStream(file.getAbsoluteFile()), "SHIFT-JIS");
+			BufferedWriter bw = new BufferedWriter(osw);
+			
+			for(Word word : wordList) {
+				
+				String str = word.getKW() + "," + word.getCategory() + "," + word.getLevel();
+
+				bw.write(str);
+				bw.newLine();
+
+			} 
+
+			bw.flush();
+			bw.close();
+
+		} catch (IOException e) {
+
+			e.printStackTrace();
+			throw new SQLException(e);
 		}
 	}
 }
